@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     python3-dev \
     libxext6 \
-    libcurl4-gnutls \
+    libcurl3-gnutls \
     xauth \
     fonts-dejavu \
     && rm -rf /var/lib/apt/lists/*
