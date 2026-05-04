@@ -6,3 +6,8 @@ __pycache__/
 .hermes/
 agent.log
 errors.log
+
+node_modules/
+dist/
+.next/
+build/
