@@ -768,20 +768,26 @@ def get_running_pid(
         if pid is None:
             continue
 
+        # En Windows, evitamos os.kill por completo porque falla a nivel de sistema
+        process_exists = False
         try:
-            os.kill(pid, 0)  # signal 0 = existence check, no actual signal sent
-        except ProcessLookupError:
-            continue
-        except PermissionError:
-            # The process exists but belongs to another user/service scope.
-            # With the runtime lock still held, prefer keeping it visible
-            # rather than deleting the PID file as "stale".
-            if _record_looks_like_gateway(record):
-                return pid
-            continue
-        except OSError:
-            # Windows raises OSError with WinError 87 for an invalid pid
-            # (process is definitely gone). Treat as "process doesn't exist".
+            if _IS_WINDOWS:
+                import subprocess
+                # Usamos tasklist: es más lento pero 100% seguro en Windows
+                out = subprocess.check_output(['tasklist', '/FI', f'PID eq {pid}', '/NH'], 
+                                           stderr=subprocess.STDOUT, creationflags=0x08000000).decode()
+                process_exists = str(pid) in out
+            else:
+                os.kill(pid, 0)
+                process_exists = True
+        except (ProcessLookupError, PermissionError, subprocess.CalledProcessError, OSError):
+            # En Linux, PermissionError significa que el proceso existe
+            if not _IS_WINDOWS:
+                process_exists = True
+        except Exception:
+            process_exists = False
+
+        if not process_exists:
             continue
 
         recorded_start = record.get("start_time")

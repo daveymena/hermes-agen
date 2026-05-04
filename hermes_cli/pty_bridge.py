@@ -26,13 +26,19 @@ Design constraints:
 from __future__ import annotations
 
 import errno
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import os
 import select
 import signal
 import struct
 import sys
-import termios
+try:
+    import termios
+except ImportError:
+    termios = None
 import time
 from typing import Optional, Sequence
 

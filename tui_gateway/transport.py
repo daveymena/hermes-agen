@@ -139,7 +139,10 @@ class StdioTransport:
         with self._lock:
             stream = self._stream_getter()
             try:
-                stream.write(line)
+                if hasattr(stream, "buffer"):
+                    stream.buffer.write(line.encode("utf-8"))
+                else:
+                    stream.write(line)
             except BrokenPipeError:
                 return False
             except ValueError as e:
